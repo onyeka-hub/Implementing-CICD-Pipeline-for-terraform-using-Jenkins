@@ -2,6 +2,9 @@
 
 Implement a seamless CI/CD pipeline for Terraform using Jenkins in this project, enabling automated testing, deployment, and management of infrastructure-as-code with ease.
 
+Refer to this link for the terraform scripts used in this project
+[terraform-aws-pipeline](https://github.com/onyeka-hub/terraform-aws-pipeline.git)
+
 # Implementing CI/CD Pipeline for Terraform using Jenkins
 
 Welcome to the comprehensive hands-on project on "Implementing CI/CD Pipeline for Terraform using Jenkins." In today's rapidly evolving IT landscape, efficient and reliable deployment of infrastructure is paramount. Continuous Integration and Continuous Deployment (CI/CD) have emerged as indispensable practices, fostering automation and agility in the software development lifecycle. In this project, we will explore the powerful combination of Terraform, a leading Infrastructure as Code (IaC) tool, and Jenkins, a widely-used automation server, to streamline and enhance infrastructure deployment workflows.
@@ -284,7 +287,7 @@ The use case we will satisfy is that
 
 Therefore, the first logical thing to have is an existing terraform code.
 
-If you don't have your own code, you can simply use this github link and fork the repository into your own github account https://github.com/darey-devops/terraform-aws-pipeline.git - It creates Networking later - It provisions kubernetes cluster using EKS
+If you don't have your own code, you can simply use this github link and fork the repository into your own github account https://github.com/onyeka-hub/terraform-aws-pipeline.git - It creates Networking later - It provisions kubernetes cluster using EKS
 
 Then do the following to test that the code can create existing resources;
 
