@@ -19,6 +19,8 @@ Let's start the project by setting up a Jenkins server running in a docker conta
 
 We will create a Dockerfile to define the configuration for our Jenkins server. This Dockerfile will include the necessary dependencies and configurations to run Jenkins seamlessly, and also to run terraform cli.
 
+Refer to ubuntu-docker-installation.sh script for the guild on installation of docker on an ubuntu server.
+
 ## Dockerfile for Jenkins
 
 Jenkins comes with a docker image that can be used out of the box to run a container with all the relevant dependencies for Jenkins. But because we have unique requirement to run terraform, we need to find a way to extend the readily available jenkins image.
@@ -350,7 +352,7 @@ Jenkins needs to know how to connect to Github, otherwise in real world cases wh
 
 - Generate an access token
 
-- Copy the access token and save in a notepad for use later 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
+- Copy the access token and save in a notepad for use later 
 
 - In Jenkins, navigate to "Manage Jenkins" -> Click on "Credentials"
 
@@ -496,40 +498,144 @@ Deliverables
 
 Updated Jenkins pipeline script incorporating the above enhancements. A brief report explaining the changes made and why they are beneficial. (Optional) Any challenges faced during the task and how they were overcome.
 
+Refer to [terraform-aws-pipeline](https://github.com/onyeka-hub/terraform-aws-pipeline.git) at the **feature-fix** branch the above changes.
+
 Congratulations!
 
-## Managing Terraform Infrastructure as Code
+// pipeline {
+//     agent any
 
-docker build -t jenkins-server . docker run -d -p 8080:8080 --name jenkins-server jenkins-server docker exec -it ee73b6f47819 /bin/bas
+//     environment {
+//         TF_CLI_ARGS = '-no-color'
+//     }
 
-2.2 Creating a Docker Container for Jenkins 2.2.1 Dockerfile for Jenkins 2.2.2 Building and Running the Jenkins Container 2.2.3 Configuring Jenkins Plugins
+//     stages {
+//         stage('Checkout') {
+//             steps {
+//                 script {
+//                     checkout scm
+//                 }
+//             }
+//         }
 
-Module 1: Introduction 1.1 Overview of CI/CD and its Importance 1.2 Benefits of Implementing CI/CD with Terraform and Jenkins 1.3 Prerequisites for the project
+//         stage('Terraform Plan') {
+//             steps {
+//                 script {
+//                     withCredentials([aws(credentialsId: 'AWS_CRED', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+//                         sh 'terraform init'
+//                         sh 'terraform plan -out=tfplan'
+//                     }
+//                 }
+//             }
+//         }
 
-Module 3: Terraform Basics Review 3.1 Quick Review of Terraform Concepts 3.1.1 Infrastructure as Code (IaC) 3.1.2 Terraform Configuration Language (HCL) 3.1.3 State Management
+//         stage('Terraform Apply') {
+//             when {
+//                 expression { env.BRANCH_NAME == 'feature-fix' }
+//                 expression { currentBuild.rawBuild.getCause(hudson.model.Cause$UserIdCause) != null }
+//             }
+//             steps {
+//                 script {
+//         //             // Ask for manual confirmation before applying changes
+//                     input message: 'Do you want to apply changes?', ok: 'Yes'
+//                     withCredentials([aws(credentialsId: 'AWS_CRED', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+//                         sh 'terraform init'
+//                         sh 'terraform apply -out=tfplan'
+//                     }
+//                 }
+//             }
+//         }
+//     }
+// }
 
-Module 4: Introduction to CI/CD with Jenkins 4.1 Understanding Jenkins 4.1.1 Jenkins Overview 4.1.2 Jenkins Architecture 4.2 Jenkins Pipelines 4.2.1 Declarative vs. Scripted Pipelines 4.2.2 Jenkinsfile and Its Structure 4.2.3 Jenkinsfile Syntax Overview
 
-Module 5: Creating a Basic Jenkins Pipeline for Terraform 5.1 Setting Up a Jenkins Project 5.1.1 Freestyle Project vs. Pipeline Project 5.1.2 Configuring Jenkins Credentials 5.2 Writing a Simple Jenkinsfile for Terraform 5.2.1 Stages and Steps in the Pipeline 5.2.2 Integrating Terraform Commands 5.2.3 Building and Testing the Pipeline Locally
+pipeline {
+    agent any
 
-Module 6: Advanced Jenkinsfile Configuration 6.1 Managing Multiple Environments 6.1.1 Using Parameters in Jenkinsfile 6.1.2 Dynamic Configuration for Different Environments 6.2 Incorporating Testing in the Pipeline 6.2.1 Unit Testing Terraform Code 6.2.2 Integration Testing for Infrastructure
+    environment {
+        TF_CLI_ARGS = '-no-color'
+    }
 
-Module 7: Integrating Version Control 7.1 Connecting Jenkins to Version Control 7.1.1 Setting Up Webhooks 7.1.2 Triggering Builds on Code Changes 7.2 Best Practices for Version Control Integration 7.2.1 Branching Strategies 7.2.2 Commit Hooks and Validation
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    // checkout scm
+                    checkout scmGit(branches: [[name: '*/feature-fix']], extensions: [], userRemoteConfigs: [[credentialsId: 'github-cred', url: 'https://github.com/onyeka-hub/terraform-aws-pipeline.git']])
+                }
+            }
+        }
 
-Module 8: Handling Secrets and Credentials 8.1 Securing Jenkins Credentials 8.1.1 Credential Management in Jenkins 8.1.2 Using Jenkins Credentials in the Pipeline 8.2 Integrating Secrets for Terraform 8.2.1 Vault Integration 8.2.2 Using Environment Variables
+        stage('Terraform Lint') {
+            steps {
+                script {
+                    echo 'Executing Terraform Lint...'
+                    withCredentials([aws(credentialsId: 'AWS_CRED', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'terraform init -input=false -no-color'
+                    sh 'terraform validate'
+                    echo 'Terraform Lint executed successfully.'
+                }
+            }
+          }
+        }
 
-Module 9: Scaling and Performance Optimization 9.1 Parallel Execution in Jenkins Pipelines 9.1.1 Parallel Stages and Steps 9.1.2 Load Balancing Considerations 9.2 Optimizing Terraform Execution 9.2.1 Terraform Workspaces 9.2.2 State Management Strategies
+        stage('Terraform Plan') {
+            steps {
+                script {
+                    echo 'Executing Terraform Plan...'
+                    withCredentials([aws(credentialsId: 'AWS_CRED', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                        sh 'terraform init -input=false -no-color'
+                        sh 'terraform plan -input=false -no-color'
+                    }
+                    echo 'Terraform Plan executed successfully.'
+                }
+            }
+        }
 
-Module 10: Monitoring and Notifications 10.1 Jenkins Pipeline Monitoring 10.1.1 Viewing Pipeline Logs 10.1.2 Notifications and Alerts 10.2 Integrating Monitoring for Terraform Deployments 10.2.1 Infrastructure Monitoring Tools 10.2.2 Custom Notifications
+        stage('Terraform Apply') {
+            when {
+                // expression { env.BRANCH_NAME == 'feature-fix' }
+                // expression { currentBuild.rawBuild.getCause(hudson.model.Cause$UserIdCause) != null }
+                expression { true }
+            }
+            steps {
+                script {
+                    try {
+                        // Ask for manual confirmation before applying changes
+                        input message: 'Do you want to apply changes?', ok: 'Yes'
+                        echo 'Executing Terraform Apply...'
+                        withCredentials([aws(credentialsId: 'AWS_CRED', accessKeyVariable: 'AWS_ACCESS_KEY_ID', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                            sh 'terraform init -input=false -no-color'
+                            sh 'terraform apply tfplan -input=false -no-color'
+                        }
+                        echo 'Terraform Apply executed successfully.'
+                    }
+                    catch(Exception e) {
+                        echo "An error occurred: ${e.message}"
+                        currentBuild.result = 'FAILURE'
+                    }
+                  }
+                }
+            }
+    
+        stage('Error Handling') {
+            when {
+                // expression { currentBuild.result == 'SUCCESS' }
+                expression { true }
+            }
+            steps {
+                echo 'Error occurred during pipeline execution. Handling...'
+                // Add error handling tasks here, if any
+                echo 'Error handling completed.'
+            }
+        }
 
-Module 11: Troubleshooting and Debugging 11.1 Common Jenkins Pipeline Issues 11.1.1 Error Handling in Jenkinsfile 11.1.2 Debugging Techniques 11.2 Terraform Debugging Strategies 11.2.1 Terraform Debug Logs 11.2.2 Analyzing Terraform State
-
-Module 12: Continuous Improvement 12.1 Code Review for Infrastructure as Code 12.1.1 Peer Reviews and Best Practices 12.1.2 Jenkins Code Quality Plugins 12.2 Continuous Feedback and Iterative Improvement 12.2.1 Metrics and Analytics 12.2.2 Feedback Loops for Development and Operations
-
-Implementing cicd pipeline for terraform using Jenkins
-
-Introduction to cicd and its importance in software development
-
-setting up jenkins for terraform cicd
-
-managing terraform infrastructure as code
+        stage('Cleanup') {
+            steps {
+                echo 'Performing cleanup...'
+                cleanWs(cleanWhenAborted: true, cleanWhenFailure: true, cleanWhenNotBuilt: true, cleanWhenUnstable: true, deleteDirs: true)
+                echo 'Cleanup completed.'
+            }
+        }
+    }
+  }
