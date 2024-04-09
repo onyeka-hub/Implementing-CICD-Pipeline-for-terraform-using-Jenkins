@@ -19,7 +19,7 @@ Let's start the project by setting up a Jenkins server running in a docker conta
 
 We will create a Dockerfile to define the configuration for our Jenkins server. This Dockerfile will include the necessary dependencies and configurations to run Jenkins seamlessly, and also to run terraform cli.
 
-Refer to [ubuntu-docker-installation.sh](https://github.com/onyeka-hub/Implementing-CICD-Pipeline-for-terraform-using-Jenkins.git/ubuntu-docker-installation.sh) script for the guild on installation of docker on an ubuntu server.
+Refer to <span style="color: blue;">ubuntu-docker-installation.sh</span> script for the guild on installation of docker on an ubuntu server.
 
 ## Dockerfile for Jenkins
 
